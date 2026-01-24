@@ -2,13 +2,13 @@
 HOTEL MANAGEMENT SYSTEM (Transaction Processing System)
 Data Structures & Algorithms Final Project
 ==================================================
-Features:
-- CRUDS Operations (Create, Read, Update, Delete, Search, Sort)
-- Linear Data Structures (Lists/Arrays)
-- Non-Linear Data Structures (Dictionaries simulating Trees)
-- No External Libraries (Pure Python)
-- Strict Input Validation with Re-prompting
-- Manual Date/Time Handling
+What this program does:
+- CRUDS Operations - you can Create, Read, Update, Delete, Search, and Sort stuff
+- Uses Lists/Arrays for storing data in order
+- Uses Dictionaries for quick lookups (like a phone book)
+- Pure Python only - no fancy external stuff needed
+- Makes sure users can't break it with bad input
+- Handles dates and times manually
 ==================================================
 """
 
@@ -16,14 +16,14 @@ Features:
 # GLOBAL DATA STRUCTURES
 # ============================================================
 
-# Linear Data Structure: List of all reservations
+# This list holds all the reservations in order
 reservations_list = []
 
-# Non-Linear Data Structure: Dictionary organized by room number
-# This simulates a tree-like structure where room numbers are keys
+# This dictionary lets us quickly find reservations by room number
+# It's like organizing by room instead of by order
 room_reservations = {}
 
-# Dictionary for room types and prices
+# All the different room types we have and their prices
 room_types = {
     "1": {"type": "Standard Single", "price": 1500, "capacity": 1},
     "2": {"type": "Standard Double", "price": 2500, "capacity": 2},
@@ -32,7 +32,7 @@ room_types = {
     "5": {"type": "Presidential Suite", "price": 12000, "capacity": 6}
 }
 
-# Available rooms per type (Linear structure)
+# Which room numbers are available for each type
 available_rooms = {
     "1": [101, 102, 103, 104, 105],
     "2": [201, 202, 203, 204, 205, 206],
@@ -41,24 +41,24 @@ available_rooms = {
     "5": [501, 502]
 }
 
-# Global counter for reservation IDs
+# Keeps track of what number to use for the next reservation ID
 reservation_id_counter = 1000
 
 # ============================================================
 # PAYMENT SYSTEM DATA STRUCTURES
 # ============================================================
 
-# Linear Data Structure: List of all payments
+# This list stores all the payments that have been made
 payments_list = []
 
-# Non-Linear Data Structure: Dictionary organized by reservation ID
-# Maps reservation_id -> list of payment records
+# This dictionary lets us quickly find all payments for a specific reservation
+# Like finding all receipts for one booking
 reservation_payments = {}
 
-# Global counter for payment IDs
+# Keeps track of what number to use for the next payment ID
 payment_id_counter = 5000
 
-# Payment methods
+# Different ways guests can pay
 payment_methods = {
     "1": "Cash",
     "2": "Credit Card",
@@ -73,31 +73,31 @@ payment_methods = {
 # ============================================================
 
 def clear_screen():
-    """Simulate clearing screen with newlines"""
+    """Clears the screen by printing a bunch of blank lines"""
     print("\n" * 50)
 
 
 def print_header(title):
-    """Print a formatted header"""
+    """Prints a nice looking header with lines above and below the title"""
     print("=" * 70)
     print(f"{title.center(70)}")
     print("=" * 70)
 
 
 def print_separator():
-    """Print a separator line"""
+    """Prints a line to separate sections"""
     print("-" * 70)
 
 
 def pause():
-    """Pause and wait for user to press Enter"""
+    """Waits for the user to press Enter before continuing"""
     input("\nPress Enter to continue...")
 
 
 def validate_integer_input(prompt, min_val=None, max_val=None):
     """
-    Validate integer input with optional min/max constraints
-    Re-prompts until valid input is received
+    Makes sure the user enters a valid number
+    Keeps asking until they give us a good number
     """
     while True:
         try:
@@ -117,10 +117,11 @@ def validate_integer_input(prompt, min_val=None, max_val=None):
             print("Error: Please enter a valid number. Try again.")
 
 
-def validate_string_input(prompt, min_length=1, max_length=100):
+def validate_string_input(prompt, min_length=1, max_length=100, allow_numbers=False):
     """
-    Validate string input with length constraints
-    Re-prompts until valid input is received
+    Makes sure the user enters valid text
+    Can check if it's too short or too long
+    Can allow numbers if we need to (like for reservation IDs)
     """
     while True:
         value = input(prompt).strip()
@@ -136,12 +137,20 @@ def validate_string_input(prompt, min_length=1, max_length=100):
         # Check if string contains only valid characters (letters, spaces, hyphens)
         valid = True
         for char in value:
-            if not (char.isalpha() or char.isspace() or char == '-' or char == '.'):
-                valid = False
-                break
+            if allow_numbers:
+                if not (char.isalpha() or char.isdigit() or char.isspace() or char == '-' or char == '.'):
+                    valid = False
+                    break
+            else:
+                if not (char.isalpha() or char.isspace() or char == '-' or char == '.'):
+                    valid = False
+                    break
         
         if not valid:
-            print("Error: Please use only letters, spaces, hyphens, and periods. Try again.")
+            if allow_numbers:
+                print("Error: Please use only letters, numbers, spaces, hyphens, and periods. Try again.")
+            else:
+                print("Error: Please use only letters, spaces, hyphens, and periods. Try again.")
             continue
         
         return value
@@ -149,8 +158,9 @@ def validate_string_input(prompt, min_length=1, max_length=100):
 
 def validate_phone_input(prompt):
     """
-    Validate phone number input (digits only, 10-15 digits)
-    Re-prompts until valid input is received
+    Makes sure phone numbers only have digits
+    Needs to be between 10-15 numbers long
+    Removes dashes and spaces automatically
     """
     while True:
         value = input(prompt).strip()
@@ -171,7 +181,8 @@ def validate_phone_input(prompt):
 
 def validate_phone_input_optional(prompt):
     """
-    Validate phone number input (optional - can press Enter to skip)
+    Same as regular phone validation but you can skip it by pressing Enter
+    Useful for updates where you don't want to change something
     """
     while True:
         value = input(prompt).strip()
@@ -196,7 +207,8 @@ def validate_phone_input_optional(prompt):
 
 def validate_email_input_optional(prompt):
     """
-    Validate email input (optional - can press Enter to skip)
+    Makes sure emails look right (has @ symbol, domain, etc)
+    You can skip it by pressing Enter if you don't want to change it
     """
     while True:
         value = input(prompt).strip().lower()
@@ -252,8 +264,9 @@ def validate_email_input_optional(prompt):
 
 def validate_email_input(prompt):
     """
-    Validate email input (basic validation)
-    Re-prompts until valid input is received
+    Makes sure emails are formatted correctly
+    Has to have @ symbol and a proper domain like gmail.com
+    Can't have weird characters like commas or spaces
     """
     while True:
         value = input(prompt).strip().lower()
@@ -305,9 +318,10 @@ def validate_email_input(prompt):
 
 def validate_date_input(prompt):
     """
-    Validate date input in format DD/MM/YYYY
-    Re-prompts until valid input is received
-    Returns a dictionary with day, month, year
+    Makes sure dates are in the right format: DD/MM/YYYY (like 25/12/2026)
+    Checks if it's a real date (no Feb 30th or stuff like that)
+    Even handles leap years!
+    Returns the date broken down into day, month, and year
     """
     while True:
         value = input(prompt).strip()
@@ -362,9 +376,10 @@ def validate_date_input(prompt):
 
 def validate_time_input(prompt):
     """
-    Validate time input in format HH:MM (24-hour)
-    Re-prompts until valid input is received
-    Returns a dictionary with hour and minute
+    Makes sure time is in 24-hour format: HH:MM (like 14:30 for 2:30 PM)
+    Checks that hours are 0-23 and minutes are 0-59
+    Automatically adds zeros so 1:00 becomes 01:00
+    Returns the time broken down into hours and minutes
     """
     while True:
         value = input(prompt).strip()
@@ -409,8 +424,8 @@ def validate_time_input(prompt):
 
 def compare_dates(date1, date2):
     """
-    Compare two dates
-    Returns: -1 if date1 < date2, 0 if equal, 1 if date1 > date2
+    Figures out which date comes first
+    Returns: -1 if date1 is earlier, 0 if they're the same, 1 if date1 is later
     """
     if date1["year"] != date2["year"]:
         return -1 if date1["year"] < date2["year"] else 1
@@ -423,8 +438,8 @@ def compare_dates(date1, date2):
 
 def calculate_nights(check_in, check_out):
     """
-    Calculate number of nights between two dates
-    Simple calculation based on days (approximation)
+    Figures out how many nights someone is staying
+    Converts both dates to total days and then subtracts them
     """
     # Convert dates to day numbers for simple calculation
     days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -443,7 +458,7 @@ def calculate_nights(check_in, check_out):
 
 
 def generate_reservation_id():
-    """Generate unique reservation ID"""
+    """Creates a unique ID for each reservation (like RES1000, RES1001, etc)"""
     global reservation_id_counter
     res_id = f"RES{reservation_id_counter}"
     reservation_id_counter += 1
@@ -451,7 +466,7 @@ def generate_reservation_id():
 
 
 def generate_payment_id():
-    """Generate unique payment ID"""
+    """Creates a unique ID for each payment (like PAY5000, PAY5001, etc)"""
     global payment_id_counter
     pay_id = f"PAY{payment_id_counter}"
     payment_id_counter += 1
@@ -460,8 +475,8 @@ def generate_payment_id():
 
 def validate_float_input(prompt, min_val=None, max_val=None):
     """
-    Validate float input with optional min/max constraints
-    Re-prompts until valid input is received
+    Makes sure the user enters a valid decimal number (for money amounts)
+    Keeps asking until they give us a good number
     """
     while True:
         try:
@@ -483,8 +498,12 @@ def validate_float_input(prompt, min_val=None, max_val=None):
 
 def find_reservation_with_search(reservations_to_search, title="Recent Reservations"):
     """
-    Helper function to find a reservation with multiple search options and cancel ability
-    Returns: reservation object or None if cancelled/not found
+    Helps find a reservation in three different ways:
+    1. Pick from a list (easiest)
+    2. Type in the reservation ID
+    3. Search by guest name
+    You can also cancel and go back if you want
+    Returns the reservation they picked, or None if they cancelled
     """
     if not reservations_to_search:
         return None
@@ -518,8 +537,8 @@ def find_reservation_with_search(reservations_to_search, title="Recent Reservati
         reservation = display_list[list_choice - 1]
     
     elif search_choice == 2:
-        # By ID
-        res_id = validate_string_input("Enter Reservation ID: ", min_length=4, max_length=20)
+        # By ID - allow alphanumeric (RES1000, etc)
+        res_id = validate_string_input("Enter Reservation ID: ", min_length=4, max_length=20, allow_numbers=True)
         for res in reservations_to_search:
             if res["id"].lower() == res_id.lower():
                 reservation = res
@@ -556,8 +575,9 @@ def find_reservation_with_search(reservations_to_search, title="Recent Reservati
 
 def create_reservation():
     """
-    CREATE Operation: Add a new reservation
-    Demonstrates Linear (list) and Non-Linear (dictionary) data structures
+    CREATE Operation - Makes a new hotel reservation
+    This shows how we add data to both our list and dictionary
+    Gets all the guest info, picks a room, sets dates, calculates cost
     """
     clear_screen()
     print_header("CREATE NEW RESERVATION")
@@ -726,8 +746,8 @@ def create_reservation():
 
 def read_reservations():
     """
-    READ Operation: Display all reservations
-    Demonstrates traversal of Linear data structure
+    READ Operation - Shows all the reservations we have
+    Goes through our list one by one and displays each reservation
     """
     clear_screen()
     print_header("VIEW ALL RESERVATIONS")
@@ -749,8 +769,9 @@ def read_reservations():
 
 def update_reservation():
     """
-    UPDATE Operation: Modify existing reservation
-    Demonstrates search and update in both Linear and Non-Linear structures
+    UPDATE Operation - Changes stuff in an existing reservation
+    You can change contact info, dates, room type, number of guests, or cancel it
+    Shows how to find and modify data in our structures
     """
     clear_screen()
     print_header("UPDATE RESERVATION")
@@ -1151,8 +1172,9 @@ def update_reservation():
 
 def delete_reservation():
     """
-    DELETE Operation: Remove reservation from system
-    Demonstrates deletion from both Linear and Non-Linear structures
+    DELETE Operation - Completely removes a reservation from the system
+    We have to delete it from both the list AND the dictionary
+    Warns you if the reservation has payments on it
     """
     clear_screen()
     print_header("DELETE RESERVATION")
@@ -1212,8 +1234,9 @@ def delete_reservation():
 
 def search_reservations():
     """
-    SEARCH Operation: Find reservations based on various criteria
-    Demonstrates different search algorithms on data structures
+    SEARCH Operation - Finds reservations based on what you're looking for
+    Can search by ID, guest name, room number, status, or date range
+    Shows different ways to look through our data
     """
     clear_screen()
     print_header("SEARCH RESERVATIONS")
@@ -1304,8 +1327,9 @@ def search_reservations():
 
 def sort_reservations():
     """
-    SORT Operation: Sort and display reservations
-    Demonstrates sorting algorithms on Linear data structure
+    SORT Operation - Organizes reservations in different orders
+    Can sort by name, room number, cost, or check-in date
+    Uses bubble sort (comparing neighbors and swapping them)
     """
     clear_screen()
     print_header("SORT RESERVATIONS")
@@ -1408,8 +1432,9 @@ def sort_reservations():
 
 def process_payment():
     """
-    Process a payment for a reservation
-    Demonstrates CRUD operations on payment data structures
+    Processes a payment for a reservation
+    Guest can pay full amount or just part of it
+    Updates the balance and payment status automatically
     """
     clear_screen()
     print_header("PROCESS PAYMENT")
@@ -1543,8 +1568,8 @@ def process_payment():
 
 def view_payments():
     """
-    View all payments in the system
-    Demonstrates READ operation on payment data
+    Shows all the payments that have been made in the system
+    Calculates total revenue too
     """
     clear_screen()
     print_header("VIEW ALL PAYMENTS")
@@ -1574,8 +1599,8 @@ def view_payments():
 
 def view_reservation_payments():
     """
-    View all payments for a specific reservation
-    Demonstrates search in Non-Linear structure
+    Shows all the payments for one specific reservation
+    Uses our dictionary to quickly find the right payments
     """
     clear_screen()
     print_header("VIEW RESERVATION PAYMENTS")
@@ -1618,8 +1643,9 @@ def view_reservation_payments():
 
 def add_additional_charges():
     """
-    Add additional charges to a reservation (room service, minibar, etc.)
-    Updates reservation balance
+    Adds extra charges to a reservation
+    Like room service, minibar, laundry, restaurant bills, etc
+    Automatically updates the balance they owe
     """
     clear_screen()
     print_header("ADD ADDITIONAL CHARGES")
@@ -1713,8 +1739,9 @@ def add_additional_charges():
 
 def issue_refund():
     """
-    Issue a refund for a cancelled reservation
-    Demonstrates DELETE/UPDATE operations on payment data
+    Gives money back to a guest for a cancelled reservation
+    Can be full refund, half refund, or custom amount
+    Stores refunds as negative payments so we keep track of everything
     """
     clear_screen()
     print_header("ISSUE REFUND")
@@ -1871,7 +1898,8 @@ def issue_refund():
 
 def payment_reports():
     """
-    Generate payment and revenue reports
+    Shows different reports about payments and money
+    Can see overall summary, payment methods used, who owes money, and refunds
     """
     clear_screen()
     print_header("PAYMENT REPORTS")
@@ -1906,7 +1934,7 @@ def payment_reports():
 
 
 def display_payment_summary_report():
-    """Display overall payment statistics"""
+    """Shows overall stats about all payments - total collected, refunded, etc"""
     print("\n")
     print_separator()
     print("OVERALL PAYMENT SUMMARY")
@@ -1954,7 +1982,7 @@ def display_payment_summary_report():
 
 
 def display_payment_method_analysis():
-    """Display payment method breakdown"""
+    """Shows breakdown of how people paid - cash, card, bank transfer, etc"""
     print("\n")
     print_separator()
     print("PAYMENT METHOD ANALYSIS")
@@ -2001,7 +2029,7 @@ def display_payment_method_analysis():
 
 
 def display_outstanding_balances():
-    """Display reservations with outstanding balances"""
+    """Shows which reservations still owe money"""
     print("\n")
     print_separator()
     print("OUTSTANDING BALANCES")
@@ -2038,7 +2066,7 @@ def display_outstanding_balances():
 
 
 def display_refund_report():
-    """Display refund statistics"""
+    """Shows all the refunds we've given out"""
     print("\n")
     print_separator()
     print("REFUND REPORT")
@@ -2072,7 +2100,7 @@ def display_refund_report():
 # ============================================================
 
 def display_payment_summary(reservation):
-    """Display payment summary for a reservation"""
+    """Shows how much the guest owes - room charges, extras, what they paid, what's left"""
     print("PAYMENT SUMMARY")
     print_separator()
     
@@ -2092,7 +2120,7 @@ def display_payment_summary(reservation):
 
 
 def display_payment_summary_line(payment):
-    """Display brief payment information"""
+    """Shows one payment in a short format - just the important stuff"""
     amount_str = f"₱{payment['amount']:,.2f}" if payment['amount'] > 0 else f"-₱{abs(payment['amount']):,.2f}"
     status = "REFUND" if payment['amount'] < 0 else payment['status']
     print(f"ID: {payment['id']:<15} | Res: {payment['reservation_id']:<15} | Amount: {amount_str:>15}")
@@ -2101,7 +2129,7 @@ def display_payment_summary_line(payment):
 
 
 def display_payment_details(payment):
-    """Display complete payment information"""
+    """Shows all the info about one payment - amount, method, date, reference number, etc"""
     print(f"Payment ID: {payment['id']}")
     print(f"Reservation ID: {payment['reservation_id']}")
     print(f"Guest: {payment['guest_name']}")
@@ -2115,7 +2143,7 @@ def display_payment_details(payment):
 
 
 def display_payment_receipt(payment, reservation):
-    """Display payment receipt"""
+    """Prints out a receipt for the payment like you'd get at a store"""
     print("PAYMENT RECEIPT")
     print(f"Payment ID: {payment['id']}")
     print(f"Reservation ID: {payment['reservation_id']}")
@@ -2143,7 +2171,7 @@ def display_payment_receipt(payment, reservation):
 # ============================================================
 
 def display_room_types():
-    """Display available room types and prices"""
+    """Shows all the different room types we have with their prices and how many people fit"""
     print("\nAvailable Room Types:")
     print("-" * 70)
     print(f"{'Type':<5} {'Room Type':<25} {'Capacity':<12} {'Price/Night':<15}")
@@ -2154,7 +2182,7 @@ def display_room_types():
 
 
 def display_reservation_summary(reservation):
-    """Display brief reservation information"""
+    """Shows just the main info about a reservation - guest, room, dates, cost"""
     print(f"ID: {reservation['id']:<15} | Guest: {reservation['guest_name']:<25}")
     print(f"Room: {reservation['room_number']:<12} | Type: {reservation['room_type']:<25}")
     print(f"Check-in: {reservation['check_in_date']['formatted']:<12} | Nights: {reservation['nights']:<5} | Total: ₱{reservation['total_cost']:>10,.2f}")
@@ -2162,7 +2190,7 @@ def display_reservation_summary(reservation):
 
 
 def display_reservation_details(reservation):
-    """Display complete reservation information"""
+    """Shows EVERYTHING about a reservation - all guest info, room details, billing, etc"""
     print(f"Reservation ID: {reservation['id']}")
     print(f"Status: {reservation['status']}")
     print()
@@ -2199,7 +2227,7 @@ def display_reservation_details(reservation):
 # ============================================================
 
 def generate_reports():
-    """Generate statistical reports from the data"""
+    """Main menu for generating different types of reports - occupancy, revenue, guest stats"""
     clear_screen()
     print_header("SYSTEM REPORTS & STATISTICS")
     
@@ -2230,7 +2258,7 @@ def generate_reports():
 
 
 def display_occupancy_report():
-    """Display room occupancy statistics"""
+    """Shows how many rooms are filled vs empty - helps see if hotel is doing well"""
     print("\n")
     print_separator()
     print("OCCUPANCY REPORT")
@@ -2267,7 +2295,7 @@ def display_occupancy_report():
 
 
 def display_revenue_report():
-    """Display revenue statistics"""
+    """Shows how much money we're making from reservations"""
     print("\n")
     print_separator()
     print("REVENUE REPORT")
@@ -2304,7 +2332,7 @@ def display_revenue_report():
 
 
 def display_guest_statistics():
-    """Display guest-related statistics"""
+    """Shows info about guests - how many people are staying, average per room, etc"""
     print("\n")
     print_separator()
     print("GUEST STATISTICS")
@@ -2342,7 +2370,7 @@ def display_guest_statistics():
 # ============================================================
 
 def display_main_menu():
-    """Display the main menu"""
+    """Shows the main menu with all the options you can pick from"""
     clear_screen()
     print_header("HOTEL MANAGEMENT SYSTEM")
     print("\n" + "=" * 70)
@@ -2372,7 +2400,7 @@ def display_main_menu():
 
 
 def display_about():
-    """Display information about the system"""
+    """Shows info about the system - what it does, what features it has, technical stuff"""
     clear_screen()
     print_header("ABOUT THE SYSTEM")
     
@@ -2418,7 +2446,11 @@ def display_about():
 
 
 def main():
-    """Main program loop with comprehensive error handling"""
+    """
+    This is where everything starts!
+    Shows the menu and handles what happens when you pick options
+    Has error handling so the program won't crash if something goes wrong
+    """
     try:
         print_header("WELCOME TO HOTEL MANAGEMENT SYSTEM")
         print("\nInitializing system...")
@@ -2574,6 +2606,7 @@ def main():
 # ============================================================
 # PROGRAM ENTRY POINT
 # ============================================================
+# This is the part that actually runs when you start the program
 
 if __name__ == "__main__":
     main()
