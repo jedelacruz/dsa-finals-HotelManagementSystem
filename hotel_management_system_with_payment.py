@@ -1262,8 +1262,8 @@ def search_reservations():
     results = []
     
     if search_choice == 1:
-        # Linear search by ID
-        res_id = validate_string_input("Enter Reservation ID: ", min_length=4, max_length=20)
+        # Search by reservation ID - allows letters and numbers like RES1000
+        res_id = validate_string_input("Enter Reservation ID: ", min_length=4, max_length=20, allow_numbers=True)
         for res in reservations_list:
             if res_id.lower() in res["id"].lower():
                 results.append(res)
@@ -1711,8 +1711,8 @@ def add_additional_charges():
     }
     category = categories[category_choice]
     
-    # Get charge details
-    description = validate_string_input("Description: ", min_length=2, max_length=100)
+    # Get charge details - description can have numbers like "2 bottles" or "Room 101"
+    description = validate_string_input("Description: ", min_length=2, max_length=100, allow_numbers=True)
     amount = validate_float_input("Amount (₱): ", min_val=0.01)
     
     # Update reservation
